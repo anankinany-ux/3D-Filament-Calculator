@@ -62,11 +62,12 @@
             right: 20px;
             display: flex;
             gap: 10px;
+            z-index: 1000;
         }
 
         body[dir="rtl"] .language-switcher {
-            right: auto;
-            left: 20px;
+            right: 20px;
+            left: auto;
         }
 
         .lang-btn {
@@ -629,10 +630,10 @@
     <div class="container">
         <div class="header">
             <div class="language-switcher">
-                <button class="lang-btn active" onclick="changeLanguage('en')" id="lang-en">English</button>
-                <button class="lang-btn" onclick="changeLanguage('he')" id="lang-he">עברית</button>
+                <button class="lang-btn active" id="lang-en">English</button>
+                <button class="lang-btn" id="lang-he">עברית</button>
             </div>
-            <div class="currency-switcher" style="position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; align-items: center;">
+            <div class="currency-switcher" style="position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; align-items: center; z-index: 999;">
                 <label for="currencySelect" style="color: white; font-weight: 600; font-size: 14px; cursor: pointer;" data-i18n="currency">Currency:</label>
                 <select id="currencySelect" onchange="changeCurrency(this.value)" style="padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.2); color: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; -webkit-appearance: none; -moz-appearance: none; appearance: none;">
                     <option value="ILS">₪ ILS (Shekel)</option>
@@ -658,15 +659,23 @@
                 </select>
             </div>
             <style>
+                .currency-switcher {
+                    z-index: 999;
+                }
                 body[dir="rtl"] .currency-switcher {
-                    right: 20px;
-                    left: auto;
+                    right: auto;
+                    left: 20px;
                 }
                 @media (max-width: 768px) {
                     .currency-switcher {
                         position: static !important;
                         justify-content: center;
                         margin-bottom: 10px;
+                    }
+                    .language-switcher {
+                        position: static !important;
+                        justify-content: center;
+                        margin-bottom: 15px;
                     }
                 }
             </style>
@@ -1026,7 +1035,9 @@
             }
         };
 
-        let currentLanguage = localStorage.getItem('language') || 'en';
+        // Clear any stored Hebrew language and default to English
+        localStorage.removeItem('language');
+        let currentLanguage = 'en';
         let currentCurrency = localStorage.getItem('currency') || 'ILS';
         let editingId = null;
 
@@ -1286,6 +1297,42 @@
 
         // Load saved filaments on page load
         window.addEventListener('DOMContentLoaded', function() {
+            // Set up language buttons FIRST - with console logging
+            const langEnBtn = document.getElementById('lang-en');
+            const langHeBtn = document.getElementById('lang-he');
+            
+            console.log('Setting up language buttons', {enBtn: !!langEnBtn, heBtn: !!langHeBtn});
+            
+            if (langEnBtn) {
+                langEnBtn.onclick = function(e) {
+                    console.log('EN button onclick fired!');
+                    e.preventDefault();
+                    changeLanguage('en');
+                    return false;
+                };
+                langEnBtn.addEventListener('click', function(e) {
+                    console.log('EN addEventListener fired!');
+                    e.preventDefault();
+                    changeLanguage('en');
+                }, true);
+            }
+            
+            if (langHeBtn) {
+                langHeBtn.onclick = function(e) {
+                    console.log('HE button onclick fired!');
+                    e.preventDefault();
+                    changeLanguage('he');
+                    return false;
+                };
+                langHeBtn.addEventListener('click', function(e) {
+                    console.log('HE addEventListener fired!');
+                    e.preventDefault();
+                    changeLanguage('he');
+                }, true);
+            }
+            
+            console.log('Language buttons setup complete!');
+            
             // Initialize currency
             const savedCurrency = localStorage.getItem('currency') || 'ILS';
             currentCurrency = savedCurrency;
@@ -1300,50 +1347,10 @@
             updateFilamentSelect();
             
             // Add event listeners as fallback for iPhone Files app
-            // Attach directly to buttons when they exist
             function attachButtonListeners() {
-                // Language buttons
-                const langEnBtn = document.getElementById('lang-en');
-                const langHeBtn = document.getElementById('lang-he');
-                
-                if (langEnBtn && !langEnBtn.dataset.listenerAttached) {
-                    langEnBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (window.changeLanguage) {
-                            window.changeLanguage('en');
-                        }
-                    });
-                    langEnBtn.addEventListener('touchend', function(e) {
-                        e.preventDefault();
-                        if (window.changeLanguage) {
-                            window.changeLanguage('en');
-                        }
-                    });
-                    langEnBtn.dataset.listenerAttached = 'true';
-                }
-                
-                if (langHeBtn && !langHeBtn.dataset.listenerAttached) {
-                    langHeBtn.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        if (window.changeLanguage) {
-                            window.changeLanguage('he');
-                        }
-                    });
-                    langHeBtn.addEventListener('touchend', function(e) {
-                        e.preventDefault();
-                        if (window.changeLanguage) {
-                            window.changeLanguage('he');
-                        }
-                    });
-                    langHeBtn.dataset.listenerAttached = 'true';
-                }
-                
                 const addFilamentBtn = document.querySelector('.add-filament-btn');
                 if (addFilamentBtn && !addFilamentBtn.dataset.listenerAttached) {
                     addFilamentBtn.addEventListener('click', function(e) {
-                        // Only use as fallback if onclick didn't fire
                         if (e.detail === 0 || !window.toggleFilamentSetup) {
                             toggleFilamentSetup();
                         }
@@ -1371,13 +1378,6 @@
             }
             
             attachButtonListeners();
-            
-            // Re-attach after language change (buttons might be re-rendered)
-            const originalChangeLanguage = window.changeLanguage;
-            window.changeLanguage = function(lang) {
-                originalChangeLanguage(lang);
-                setTimeout(attachButtonListeners, 100);
-            };
         });
 
         // Update save button text
