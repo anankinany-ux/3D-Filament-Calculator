@@ -1211,7 +1211,10 @@
             document.querySelectorAll('.lang-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            document.getElementById(`lang-${lang}`).classList.add('active');
+            const langBtn = document.getElementById(`lang-${lang}`);
+            if (langBtn) {
+                langBtn.classList.add('active');
+            }
             
             // Translate all elements
             document.querySelectorAll('[data-i18n]').forEach(element => {
@@ -1272,6 +1275,9 @@
             loadSavedFilaments();
             updateFilamentSelect();
         }
+        
+        // Make changeLanguage globally accessible
+        window.changeLanguage = changeLanguage;
 
         // Translate function
         function t(key) {
@@ -1296,6 +1302,44 @@
             // Add event listeners as fallback for iPhone Files app
             // Attach directly to buttons when they exist
             function attachButtonListeners() {
+                // Language buttons
+                const langEnBtn = document.getElementById('lang-en');
+                const langHeBtn = document.getElementById('lang-he');
+                
+                if (langEnBtn && !langEnBtn.dataset.listenerAttached) {
+                    langEnBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (window.changeLanguage) {
+                            window.changeLanguage('en');
+                        }
+                    });
+                    langEnBtn.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        if (window.changeLanguage) {
+                            window.changeLanguage('en');
+                        }
+                    });
+                    langEnBtn.dataset.listenerAttached = 'true';
+                }
+                
+                if (langHeBtn && !langHeBtn.dataset.listenerAttached) {
+                    langHeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (window.changeLanguage) {
+                            window.changeLanguage('he');
+                        }
+                    });
+                    langHeBtn.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        if (window.changeLanguage) {
+                            window.changeLanguage('he');
+                        }
+                    });
+                    langHeBtn.dataset.listenerAttached = 'true';
+                }
+                
                 const addFilamentBtn = document.querySelector('.add-filament-btn');
                 if (addFilamentBtn && !addFilamentBtn.dataset.listenerAttached) {
                     addFilamentBtn.addEventListener('click', function(e) {
@@ -1329,8 +1373,8 @@
             attachButtonListeners();
             
             // Re-attach after language change (buttons might be re-rendered)
-            const originalChangeLanguage = changeLanguage;
-            changeLanguage = function(lang) {
+            const originalChangeLanguage = window.changeLanguage;
+            window.changeLanguage = function(lang) {
                 originalChangeLanguage(lang);
                 setTimeout(attachButtonListeners, 100);
             };
