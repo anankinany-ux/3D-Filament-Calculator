@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Printing Filament Cost Calculator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Assistant:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        body[dir="rtl"] {
+            font-family: 'Assistant', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        body[dir="rtl"] .language-switcher {
+            right: auto;
+            left: 20px;
+        }
+
+        .lang-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .lang-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: #667eea;
+            border-color: white;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-top: 10px;
+            font-family: inherit;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        body[dir="rtl"] .btn {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .saved-filaments {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .filament-card {
+            background: white;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .filament-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .filament-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .filament-card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-block;
+            border: 2px solid #ddd;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        body[dir="rtl"] .color-preview {
+            margin-left: 0;
+            margin-right: 10px;
+        }
+
+        .results {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .results h3 {
+            margin-bottom: 15px;
+            font-size: 1.8em;
+            font-weight: 700;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .result-item strong {
+            display: inline-block;
+            min-width: 200px;
+        }
+
+        .results-table {
+            width: 100%;
+            margin-top: 15px;
+            margin-bottom: 20px;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .results-table th {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .results-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .results-table .label-cell {
+            font-weight: 600;
+            width: 50%;
+        }
+
+        .results-table .value-cell {
+            text-align: right;
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+            animation: slideDown 0.3s ease;
+            position: relative;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .error-message.success {
+            background: linear-gradient(135deg, #51cf66 0%, #40c057 100%);
+            box-shadow: 0 4px 15px rgba(81, 207, 102, 0.3);
+        }
+
+        .error-message .close-error {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        .error-message .close-error:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .container {
+                border-radius: 15px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .language-switcher {
+                position: static;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+
+            body[dir="rtl"] .language-switcher {
+                position: static;
+            }
+
+            .content {
+                padding: 20px 15px;
+            }
+
+            .section {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .section h2 {
+                font-size: 1.3em;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .time-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .saved-filaments {
+                grid-template-columns: 1fr;
+            }
+
+            .results-table {
+                font-size: 0.9em;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 8px;
+            }
+
+            .results-table .label-cell {
+                width: 45%;
+            }
+
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .button-group .btn {
+                width: 100%;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .results-table {
+                font-size: 0.85em;
+            }
+
+            .results-table th,
+            .results-table td {
+                padding: 6px;
+            }
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            font-weight: bold;
+        }
+
+        body[dir="rtl"] .delete-btn {
+            right: auto;
+            left: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .use-btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .radio-group {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .radio-label input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #667eea;
+        }
+
+        .time-input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-input {
+            margin-bottom: 0;
+        }
+
+        .edit-btn {
+            position: absolute;
+            top: 10px;
+            right: 40px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+            line-height: 1;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        body[dir="rtl"] .edit-btn {
+            right: auto;
+            left: 40px;
+        }
+
+        .edit-btn:hover {
+            background: #5568d3;
+        }
+
+        .color-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .color-option-preview {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            display: inline-block;
+        }
+
+        .filament-setup-section {
+            display: none;
+        }
+
+        .filament-setup-section.show {
+            display: block;
+        }
+
+        .add-filament-btn {
+            margin-bottom: 20px;
+        }
+
+        .calculation-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border: 2px solid #667eea;
+        }
+
+        .calculation-section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="language-switcher">
+                <button class="lang-btn active" onclick="changeLanguage('en')" id="lang-en">English</button>
+                <button class="lang-btn" onclick="changeLanguage('he')" id="lang-he">עברית</button>
+            </div>
+            <div class="currency-switcher" style="position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; align-items: center;">
+                <label for="currencySelect" style="color: white; font-weight: 600; font-size: 14px; cursor: pointer;" data-i18n="currency">Currency:</label>
+                <select id="currencySelect" onchange="changeCurrency(this.value)" style="padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(255, 255, 255, 0.3); background: rgba(255, 255, 255, 0.2); color: white; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; -webkit-appearance: none; -moz-appearance: none; appearance: none;">
+                    <option value="ILS">₪ ILS (Shekel)</option>
+                    <option value="USD">$ USD (Dollar)</option>
+                    <option value="EUR">€ EUR (Euro)</option>
+                    <option value="GBP">£ GBP (Pound)</option>
+                    <option value="JPY">¥ JPY (Yen)</option>
+                    <option value="CAD">C$ CAD (Dollar)</option>
+                    <option value="AUD">A$ AUD (Dollar)</option>
+                    <option value="CHF">CHF</option>
+                    <option value="CNY">¥ CNY (Yuan)</option>
+                    <option value="INR">₹ INR (Rupee)</option>
+                    <option value="BRL">R$ BRL (Real)</option>
+                    <option value="KRW">₩ KRW (Won)</option>
+                    <option value="MXN">$ MXN (Peso)</option>
+                    <option value="RUB">₽ RUB (Ruble)</option>
+                    <option value="ZAR">R ZAR (Rand)</option>
+                    <option value="SEK">kr SEK (Krona)</option>
+                    <option value="NOK">kr NOK (Krone)</option>
+                    <option value="DKK">kr DKK (Krone)</option>
+                    <option value="PLN">zł PLN (Złoty)</option>
+                    <option value="TRY">₺ TRY (Lira)</option>
+                </select>
+            </div>
+            <style>
+                body[dir="rtl"] .currency-switcher {
+                    right: 20px;
+                    left: auto;
+                }
+                @media (max-width: 768px) {
+                    .currency-switcher {
+                        position: static !important;
+                        justify-content: center;
+                        margin-bottom: 10px;
+                    }
+                }
+            </style>
+            <h1 data-i18n="title">3D Printing Filament Cost Calculator</h1>
+            <p data-i18n="subtitle">Calculate costs, save profiles, and price your prints</p>
+        </div>
+
+        <div class="content">
+            <!-- Calculation Section -->
+            <div class="section calculation-section">
+                <h2 data-i18n="calculateCost">Calculate Print Cost</h2>
+                
+                <div id="errorMessage" class="error-message">
+                    <span id="errorText"></span>
+                    <button class="close-error" onclick="closeErrorMessage()">×</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="selectedFilament" data-i18n="useSavedFilament">Use Saved Filament</label>
+                    <select id="selectedFilament">
+                        <option value="" data-i18n="selectSavedFilament">-- Select Saved Filament --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="partWeight" data-i18n="partWeight">Model Weight (grams)</label>
+                    <input type="number" id="partWeight" step="0.01" min="0" placeholder="50.0">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="printTime">Print Time</label>
+                    <div class="time-input-group">
+                        <div class="form-group time-input">
+                            <label for="printHours" data-i18n="hours">Hours</label>
+                            <input type="number" id="printHours" step="1" min="0" placeholder="2" value="0">
+                        </div>
+                        <div class="form-group time-input">
+                            <label for="printMinutes" data-i18n="minutes">Minutes</label>
+                            <input type="number" id="printMinutes" step="1" min="0" max="59" placeholder="30" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="calculateCost()" data-i18n="calculate">Calculate Cost</button>
+                <button class="btn btn-secondary" onclick="clearForm()" data-i18n="clearForm">Clear Form</button>
+            </div>
+
+            <!-- Results Section -->
+            <div id="results" class="results hidden">
+                <h3 data-i18n="results">Calculation Results</h3>
+                <div id="resultsContent"></div>
+            </div>
+
+            <!-- Saved Filaments Section -->
+            <div class="section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;" data-i18n="savedProfiles">Saved Filament Profiles</h2>
+                    <button class="btn btn-success add-filament-btn" onclick="toggleFilamentSetup()" data-i18n="addFilament">+ Add Filament</button>
+                </div>
+                <div id="savedFilaments" class="saved-filaments">
+                    <!-- Saved filaments will appear here -->
+                </div>
+            </div>
+
+            <!-- Filament Setup Section -->
+            <div class="section filament-setup-section" id="filamentSetupSection">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h2 style="margin: 0;" data-i18n="filamentSetup">Filament Setup</h2>
+                    <button class="btn btn-secondary" id="closeFilamentSetupBtn" onclick="toggleFilamentSetup()" data-i18n="close">Close</button>
+                </div>
+                <div class="form-group">
+                    <label for="filamentCustomName" data-i18n="customName">Custom Name (Optional)</label>
+                    <input type="text" id="filamentCustomName" placeholder="e.g., My Red PLA">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="filamentType" data-i18n="filamentType">Filament Type</label>
+                        <select id="filamentType">
+                            <option value="PLA">PLA</option>
+                            <option value="PLA+">PLA+</option>
+                            <option value="PETG">PETG</option>
+                            <option value="PET">PET</option>
+                            <option value="ABS">ABS</option>
+                            <option value="TPU">TPU</option>
+                            <option value="ASA">ASA</option>
+                            <option value="PC">PC</option>
+                            <option value="Nylon">Nylon</option>
+                            <option value="Other" data-i18n="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filamentManufacturer" data-i18n="manufacturer">Manufacturer</label>
+                        <select id="filamentManufacturer">
+                            <option value="" data-i18n="selectManufacturer">-- Select Manufacturer --</option>
+                            <option value="eSUN">eSUN</option>
+                            <option value="HATCHBOX">HATCHBOX</option>
+                            <option value="Overture">Overture</option>
+                            <option value="Polymaker">Polymaker</option>
+                            <option value="Prusament">Prusament</option>
+                            <option value="MatterHackers">MatterHackers</option>
+                            <option value="Sunlu">Sunlu</option>
+                            <option value="Eryone">Eryone</option>
+                            <option value="TTYT3D">TTYT3D</option>
+                            <option value="Geeetech">Geeetech</option>
+                            <option value="Flashforge">Flashforge</option>
+                            <option value="Creality">Creality</option>
+                            <option value="Anycubic">Anycubic</option>
+                            <option value="Inland">Inland</option>
+                            <option value="Amazon Basics">Amazon Basics</option>
+                            <option value="Ziro">Ziro</option>
+                            <option value="ColorFabb">ColorFabb</option>
+                            <option value="Fillamentum">Fillamentum</option>
+                            <option value="3D Solutech">3D Solutech</option>
+                            <option value="TIANSE">TIANSE</option>
+                            <option value="Other" data-i18n="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="filamentColor" data-i18n="color">Color</label>
+                        <select id="filamentColor" onchange="handleColorChange()">
+                            <option value="#000000" data-color-name="black">Black</option>
+                            <option value="#FFFFFF" data-color-name="white">White</option>
+                            <option value="#FF0000" data-color-name="red" selected>Red</option>
+                            <option value="#0000FF" data-color-name="blue">Blue</option>
+                            <option value="#00FF00" data-color-name="green">Green</option>
+                            <option value="#FFFF00" data-color-name="yellow">Yellow</option>
+                            <option value="#FFA500" data-color-name="orange">Orange</option>
+                            <option value="#800080" data-color-name="purple">Purple</option>
+                            <option value="#808080" data-color-name="gray">Gray</option>
+                            <option value="#8B4513" data-color-name="brown">Brown</option>
+                            <option value="#FFD700" data-color-name="gold">Gold</option>
+                            <option value="#E8E8E8" data-color-name="transparent">Transparent</option>
+                            <option value="custom" data-color-name="custom">Custom</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customColorGroup" style="display: none;">
+                        <label for="filamentCustomColor" data-i18n="customColor">Custom Color</label>
+                        <input type="color" id="filamentCustomColor" value="#FF0000">
+                    </div>
+                    <div class="form-group" id="customColorNameGroup" style="display: none;">
+                        <label for="filamentCustomColorName" data-i18n="customColorName">Custom Color Name</label>
+                        <input type="text" id="filamentCustomColorName" placeholder="e.g., Ocean Blue, Sunset Orange">
+                    </div>
+                    <div class="form-group">
+                        <label for="filamentDiameter" data-i18n="diameter">Diameter (mm)</label>
+                        <input type="number" id="filamentDiameter" value="1.75" step="0.01" min="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="pricePerKg" data-i18n="pricePerKg">Price per 1 kg</label>
+                        <input type="number" id="pricePerKg" step="0.01" min="0" placeholder="90.00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="density" data-i18n="density">Density (g/cm³)</label>
+                        <input type="number" id="density" value="1.24" step="0.01" min="0.1" placeholder="1.24 for PLA">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellingPricePerGram" data-i18n="sellingPricePerGram">Selling Price per Gram</label>
+                        <input type="number" id="sellingPricePerGram" step="0.001" min="0" placeholder="0.18">
+                    </div>
+                    <div class="form-group">
+                        <label for="sellingPricePerMinute" data-i18n="sellingPricePerMinute">Selling Price per Minute</label>
+                        <input type="number" id="sellingPricePerMinute" step="0.001" min="0" placeholder="0.07">
+                    </div>
+                </div>
+                <div id="editModeControls" style="display: none; margin-top: 10px;">
+                    <button class="btn btn-secondary" onclick="cancelEdit()" data-i18n="cancelEdit">Cancel Edit</button>
+                </div>
+                <button class="btn btn-success" id="saveBtn" onclick="saveFilament()" data-i18n="saveProfile">Save Filament Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                title: '3D Printing Filament Cost Calculator',
+                subtitle: 'Calculate costs, save profiles, and price your prints',
+                savedProfiles: 'Saved Filament Profiles',
+                addFilament: '+ Add Filament',
+                close: 'Close',
+                filamentSetup: 'Filament Setup',
+                filamentType: 'Filament Type',
+                manufacturer: 'Manufacturer',
+                selectManufacturer: '-- Select Manufacturer --',
+                color: 'Color',
+                customName: 'Custom Name (Optional)',
+                customColor: 'Custom Color',
+                customColorName: 'Custom Color Name',
+                diameter: 'Diameter (mm)',
+                pricePerKg: 'Price per 1 kg',
+                density: 'Density (g/cm³)',
+                sellingPricePerGram: 'Selling Price per Gram',
+                sellingPricePerMinute: 'Selling Price per Minute',
+                currency: 'Currency',
+                saveProfile: 'Save Filament Profile',
+                calculateCost: 'Calculate Print Cost',
+                partWeight: 'Part Weight (grams)',
+                partLength: 'Filament Length (meters)',
+                printTime: 'Print Time',
+                hours: 'Hours',
+                minutes: 'Minutes',
+                inputMethod: 'Input Method',
+                byWeight: 'By Model Weight (grams)',
+                byLength: 'By Filament Length (meters)',
+                useSavedFilament: 'Use Saved Filament',
+                selectSavedFilament: '-- Select Saved Filament --',
+                calculate: 'Calculate Cost',
+                clearForm: 'Clear Form',
+                results: 'Calculation Results',
+                inputSettings: 'Input Settings',
+                calculatedResults: 'Calculated Results',
+                costs: 'Costs',
+                sellingPrices: 'Selling Prices',
+                calculation: 'Calculation',
+                minute: 'min',
+                noSavedFilaments: 'No saved filaments yet. Create and save a filament profile above.',
+                other: 'Other',
+                deleteConfirm: 'Are you sure you want to delete this filament profile?',
+                enterPricePerKg: 'Please enter a valid price per kg',
+                profileSaved: 'Filament profile saved successfully!',
+                enterPriceOrSelect: 'Please enter a price per kg or select a saved filament',
+                enterWeight: 'Please enter a valid model weight',
+                enterLength: 'Please enter a valid filament length',
+                enterPrintTime: 'Please enter print time (hours and/or minutes)',
+                filamentNotFound: 'Selected filament not found',
+                filamentTypeLabel: 'Filament Type',
+                partWeightLabel: 'Part Weight',
+                filamentLength: 'Filament Length',
+                printTimeLabel: 'Print Time',
+                materialCost: 'Material Cost',
+                costPerGram: 'Cost per Gram',
+                costPerMeter: 'Cost per Meter',
+                sellingPriceByWeight: 'Selling Price (by Weight)',
+                sellingPriceByTime: 'Selling Price (by Time)',
+                totalSellingPrice: 'Total Selling Price',
+                grams: 'grams',
+                meters: 'meters',
+                minutes: 'minutes',
+                useThisFilament: 'Use This Filament',
+                delete: 'Delete',
+                colorLabel: 'Color',
+                diameterLabel: 'Diameter',
+                priceLabel: 'Price',
+                densityLabel: 'Density',
+                manufacturerLabel: 'Manufacturer',
+                sellPerGram: 'Sell/Gram',
+                sellPerMin: 'Sell/Min',
+                black: 'Black',
+                white: 'White',
+                red: 'Red',
+                blue: 'Blue',
+                green: 'Green',
+                yellow: 'Yellow',
+                orange: 'Orange',
+                purple: 'Purple',
+                gray: 'Gray',
+                brown: 'Brown',
+                gold: 'Gold',
+                transparent: 'Transparent',
+                edit: 'Edit',
+                updateProfile: 'Update Filament Profile',
+                cancelEdit: 'Cancel Edit',
+                profileUpdated: 'Filament profile updated successfully!'
+            },
+            he: {
+                title: 'מחשבון עלות חוט הדפסה תלת מימד',
+                subtitle: 'חשב עלויות, שמור פרופילים ותמחר את ההדפסות שלך',
+                savedProfiles: 'פרופילי חוט שמורים',
+                addFilament: '+ הוסף חוט',
+                close: 'סגור',
+                filamentSetup: 'הגדרת חוט',
+                filamentType: 'סוג חוט',
+                manufacturer: 'יצרן',
+                selectManufacturer: '-- בחר יצרן --',
+                color: 'צבע',
+                customName: 'שם מותאם אישית (אופציונלי)',
+                customColor: 'צבע מותאם אישית',
+                customColorName: 'שם צבע מותאם אישית',
+                diameter: 'קוטר (מ"מ)',
+                pricePerKg: 'מחיר לק"ג',
+                density: 'צפיפות (גרם/סמ"ק)',
+                sellingPricePerGram: 'מחיר מכירה לגרם',
+                sellingPricePerMinute: 'מחיר מכירה לדקה',
+                currency: 'מטבע',
+                saveProfile: 'שמור פרופיל חוט',
+                calculateCost: 'חשב עלות הדפסה',
+                partWeight: 'משקל החלק (גרם)',
+                partLength: 'אורך חוט (מטר)',
+                printTime: 'זמן הדפסה',
+                hours: 'שעות',
+                minutes: 'דקות',
+                inputMethod: 'שיטת קלט',
+                byWeight: 'לפי משקל דגם (גרם)',
+                byLength: 'לפי אורך חוט (מטר)',
+                useSavedFilament: 'השתמש בחוט שמור',
+                selectSavedFilament: '-- בחר חוט שמור --',
+                calculate: 'חשב עלות',
+                clearForm: 'נקה טופס',
+                results: 'תוצאות חישוב',
+                inputSettings: 'הגדרות קלט',
+                calculatedResults: 'תוצאות מחושבות',
+                costs: 'עלויות',
+                sellingPrices: 'מחירי מכירה',
+                calculation: 'חישוב',
+                minute: 'דק',
+                noSavedFilaments: 'אין חוטים שמורים עדיין. צור ושמור פרופיל חוט למעלה.',
+                other: 'אחר',
+                deleteConfirm: 'האם אתה בטוח שברצונך למחוק את פרופיל החוט הזה?',
+                enterPricePerKg: 'אנא הזן מחיר תקין לק"ג',
+                profileSaved: 'פרופיל החוט נשמר בהצלחה!',
+                enterPriceOrSelect: 'אנא הזן מחיר לק"ג או בחר חוט שמור',
+                enterWeight: 'אנא הזן משקל דגם תקין',
+                enterLength: 'אנא הזן אורך חוט תקין',
+                enterPrintTime: 'אנא הזן זמן הדפסה (שעות ו/או דקות)',
+                filamentNotFound: 'החוט שנבחר לא נמצא',
+                filamentTypeLabel: 'סוג חוט',
+                partWeightLabel: 'משקל החלק',
+                filamentLength: 'אורך חוט',
+                printTimeLabel: 'זמן הדפסה',
+                materialCost: 'עלות חומר',
+                costPerGram: 'עלות לגרם',
+                costPerMeter: 'עלות למטר',
+                sellingPriceByWeight: 'מחיר מכירה (לפי משקל)',
+                sellingPriceByTime: 'מחיר מכירה (לפי זמן)',
+                totalSellingPrice: 'מחיר מכירה כולל',
+                grams: 'גרם',
+                meters: 'מטר',
+                minutes: 'דקות',
+                useThisFilament: 'השתמש בחוט זה',
+                delete: 'מחק',
+                colorLabel: 'צבע',
+                diameterLabel: 'קוטר',
+                priceLabel: 'מחיר',
+                densityLabel: 'צפיפות',
+                manufacturerLabel: 'יצרן',
+                sellPerGram: 'מכירה/גרם',
+                sellPerMin: 'מכירה/דקה',
+                black: 'שחור',
+                white: 'לבן',
+                red: 'אדום',
+                blue: 'כחול',
+                green: 'ירוק',
+                yellow: 'צהוב',
+                orange: 'כתום',
+                purple: 'סגול',
+                gray: 'אפור',
+                brown: 'חום',
+                gold: 'זהב',
+                transparent: 'שקוף',
+                edit: 'ערוך',
+                updateProfile: 'עדכן פרופיל חוט',
+                cancelEdit: 'בטל עריכה',
+                profileUpdated: 'פרופיל החוט עודכן בהצלחה!'
+            }
+        };
+
+        let currentLanguage = localStorage.getItem('language') || 'en';
+        let currentCurrency = localStorage.getItem('currency') || 'ILS';
+        let editingId = null;
+
+        // Currency data
+        const currencies = {
+            ILS: { symbol: '₪', name: 'ILS', fullName: 'Shekel', position: 'before' },
+            USD: { symbol: '$', name: 'USD', fullName: 'Dollar', position: 'before' },
+            EUR: { symbol: '€', name: 'EUR', fullName: 'Euro', position: 'before' },
+            GBP: { symbol: '£', name: 'GBP', fullName: 'Pound', position: 'before' },
+            JPY: { symbol: '¥', name: 'JPY', fullName: 'Yen', position: 'before' },
+            CAD: { symbol: 'C$', name: 'CAD', fullName: 'Dollar', position: 'before' },
+            AUD: { symbol: 'A$', name: 'AUD', fullName: 'Dollar', position: 'before' },
+            CHF: { symbol: 'CHF', name: 'CHF', fullName: 'Franc', position: 'before' },
+            CNY: { symbol: '¥', name: 'CNY', fullName: 'Yuan', position: 'before' },
+            INR: { symbol: '₹', name: 'INR', fullName: 'Rupee', position: 'before' },
+            BRL: { symbol: 'R$', name: 'BRL', fullName: 'Real', position: 'before' },
+            KRW: { symbol: '₩', name: 'KRW', fullName: 'Won', position: 'before' },
+            MXN: { symbol: '$', name: 'MXN', fullName: 'Peso', position: 'before' },
+            RUB: { symbol: '₽', name: 'RUB', fullName: 'Ruble', position: 'before' },
+            ZAR: { symbol: 'R', name: 'ZAR', fullName: 'Rand', position: 'before' },
+            SEK: { symbol: 'kr', name: 'SEK', fullName: 'Krona', position: 'after' },
+            NOK: { symbol: 'kr', name: 'NOK', fullName: 'Krone', position: 'after' },
+            DKK: { symbol: 'kr', name: 'DKK', fullName: 'Krone', position: 'after' },
+            PLN: { symbol: 'zł', name: 'PLN', fullName: 'Złoty', position: 'after' },
+            TRY: { symbol: '₺', name: 'TRY', fullName: 'Lira', position: 'before' }
+        };
+
+        // Format currency
+        function formatCurrency(amount, decimals = 2) {
+            const currency = currencies[currentCurrency];
+            const formattedAmount = formatNumber(amount, decimals);
+            if (currency.position === 'after') {
+                return `${formattedAmount} ${currency.symbol}`;
+            } else {
+                return `${currency.symbol}${formattedAmount}`;
+            }
+        }
+
+        // Get currency symbol
+        function getCurrencySymbol() {
+            return currencies[currentCurrency].symbol;
+        }
+
+        // Change currency
+        function changeCurrency(currency) {
+            if (!currency || !currencies[currency]) return;
+            currentCurrency = currency;
+            localStorage.setItem('currency', currency);
+            
+            // Update currency select dropdown
+            const select = document.getElementById('currencySelect');
+            if (select) {
+                select.value = currency;
+            }
+            
+            // Reload filaments to update currency displays
+            loadSavedFilaments();
+            updateFilamentSelect();
+            
+            // Update labels
+            updateCurrencyLabels();
+            
+            // Recalculate if results are shown
+            const resultsDiv = document.getElementById('results');
+            if (resultsDiv && !resultsDiv.classList.contains('hidden')) {
+                calculateCost();
+            }
+        }
+        
+        // Make function globally accessible
+        window.changeCurrency = changeCurrency;
+
+        // Update currency labels in form
+        function updateCurrencyLabels() {
+            const symbol = getCurrencySymbol();
+            const labels = document.querySelectorAll('[data-i18n="pricePerKg"], [data-i18n="sellingPricePerGram"], [data-i18n="sellingPricePerMinute"]');
+            labels.forEach(label => {
+                const key = label.getAttribute('data-i18n');
+                if (key === 'pricePerKg') {
+                    label.textContent = `${t('pricePerKg').replace('₪', symbol)}`;
+                } else if (key === 'sellingPricePerGram') {
+                    label.textContent = `${t('sellingPricePerGram').replace('₪', symbol)}`;
+                } else if (key === 'sellingPricePerMinute') {
+                    label.textContent = `${t('sellingPricePerMinute').replace('₪', symbol)}`;
+                }
+            });
+        }
+
+        // Show error message
+        function showError(message, isSuccess = false) {
+            const errorDiv = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorDiv.classList.add('show');
+            
+            if (isSuccess) {
+                errorDiv.classList.add('success');
+            } else {
+                errorDiv.classList.remove('success');
+            }
+            
+            // Auto-hide after 5 seconds (or 3 for success)
+            setTimeout(() => {
+                closeErrorMessage();
+            }, isSuccess ? 3000 : 5000);
+            
+            // Scroll to error message
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Close error message
+        function closeErrorMessage() {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.classList.remove('show');
+            errorDiv.classList.remove('success');
+        }
+
+        // Toggle filament setup section
+        function toggleFilamentSetup() {
+            try {
+                const section = document.getElementById('filamentSetupSection');
+                if (!section) return;
+                
+                section.classList.toggle('show');
+                
+                // Scroll to section if showing
+                if (section.classList.contains('show')) {
+                    setTimeout(() => {
+                        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
+            } catch (e) {
+                console.error('Error toggling filament setup:', e);
+            }
+        }
+        
+        // Make function globally accessible
+        window.toggleFilamentSetup = toggleFilamentSetup;
+
+        // Get color name from hex code
+        function getColorName(hexCode) {
+            const colorMap = {
+                '#000000': 'black',
+                '#FFFFFF': 'white',
+                '#FF0000': 'red',
+                '#0000FF': 'blue',
+                '#00FF00': 'green',
+                '#FFFF00': 'yellow',
+                '#FFA500': 'orange',
+                '#800080': 'purple',
+                '#808080': 'gray',
+                '#8B4513': 'brown',
+                '#FFD700': 'gold',
+                '#E8E8E8': 'transparent'
+            };
+            // Return color name if found, otherwise return 'custom' (never return hex code)
+            return colorMap[hexCode.toUpperCase()] || 'custom';
+        }
+
+        // Get translated color name
+        function getTranslatedColorName(hexCode) {
+            const colorName = getColorName(hexCode);
+            return translations[currentLanguage][colorName] || colorName;
+        }
+
+        // Format number without trailing zeros
+        function formatNumber(num, decimals = 2) {
+            return parseFloat(num.toFixed(decimals)).toString();
+        }
+
+        // Change language
+        function changeLanguage(lang) {
+            currentLanguage = lang;
+            localStorage.setItem('language', lang);
+            
+            // Update HTML direction
+            document.documentElement.lang = lang;
+            document.documentElement.dir = lang === 'he' ? 'rtl' : 'ltr';
+            document.body.dir = lang === 'he' ? 'rtl' : 'ltr';
+            
+            // Update language buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`lang-${lang}`).classList.add('active');
+            
+            // Translate all elements
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.textContent = translations[lang][key];
+                }
+            });
+            
+            // Update currency labels
+            updateCurrencyLabels();
+            
+            // Update save button text based on edit mode
+            updateSaveButtonText();
+            
+            // Update add filament button text
+            const addBtn = document.querySelector('.add-filament-btn');
+            if (addBtn) {
+                addBtn.textContent = translations[lang].addFilament;
+            }
+            
+            // Update select options
+            const otherOption = document.querySelector('#filamentType option[value="Other"]');
+            if (otherOption) {
+                otherOption.textContent = translations[lang].other;
+            }
+            
+            const selectOption = document.querySelector('#selectedFilament option[value=""]');
+            if (selectOption) {
+                selectOption.textContent = translations[lang].selectSavedFilament;
+            }
+            
+            // Update color dropdown options
+            const colorSelect = document.getElementById('filamentColor');
+            if (colorSelect) {
+                colorSelect.querySelectorAll('option').forEach(option => {
+                    const colorName = option.getAttribute('data-color-name');
+                    if (colorName && translations[lang][colorName]) {
+                        option.textContent = translations[lang][colorName];
+                    }
+                });
+            }
+            
+            // Update manufacturer dropdown
+            const manufacturerSelect = document.getElementById('filamentManufacturer');
+            if (manufacturerSelect) {
+                const selectOption = manufacturerSelect.querySelector('option[value=""]');
+                if (selectOption) {
+                    selectOption.textContent = translations[lang].selectManufacturer;
+                }
+                const otherOption = manufacturerSelect.querySelector('option[value="Other"]');
+                if (otherOption) {
+                    otherOption.textContent = translations[lang].other;
+                }
+            }
+            
+            // Reload saved filaments and update select
+            loadSavedFilaments();
+            updateFilamentSelect();
+        }
+
+        // Translate function
+        function t(key) {
+            return translations[currentLanguage][key] || key;
+        }
+
+        // Load saved filaments on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initialize currency
+            const savedCurrency = localStorage.getItem('currency') || 'ILS';
+            currentCurrency = savedCurrency;
+            const currencySelect = document.getElementById('currencySelect');
+            if (currencySelect) {
+                currencySelect.value = savedCurrency;
+            }
+            updateCurrencyLabels();
+            
+            changeLanguage(currentLanguage);
+            loadSavedFilaments();
+            updateFilamentSelect();
+            
+            // Add event listeners as fallback for iPhone Files app
+            // Attach directly to buttons when they exist
+            function attachButtonListeners() {
+                const addFilamentBtn = document.querySelector('.add-filament-btn');
+                if (addFilamentBtn && !addFilamentBtn.dataset.listenerAttached) {
+                    addFilamentBtn.addEventListener('click', function(e) {
+                        // Only use as fallback if onclick didn't fire
+                        if (e.detail === 0 || !window.toggleFilamentSetup) {
+                            toggleFilamentSetup();
+                        }
+                    });
+                    addFilamentBtn.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        toggleFilamentSetup();
+                    });
+                    addFilamentBtn.dataset.listenerAttached = 'true';
+                }
+                
+                const closeBtn = document.getElementById('closeFilamentSetupBtn');
+                if (closeBtn && !closeBtn.dataset.listenerAttached) {
+                    closeBtn.addEventListener('click', function(e) {
+                        if (e.detail === 0 || !window.toggleFilamentSetup) {
+                            toggleFilamentSetup();
+                        }
+                    });
+                    closeBtn.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        toggleFilamentSetup();
+                    });
+                    closeBtn.dataset.listenerAttached = 'true';
+                }
+            }
+            
+            attachButtonListeners();
+            
+            // Re-attach after language change (buttons might be re-rendered)
+            const originalChangeLanguage = changeLanguage;
+            changeLanguage = function(lang) {
+                originalChangeLanguage(lang);
+                setTimeout(attachButtonListeners, 100);
+            };
+        });
+
+        // Update save button text
+        function updateSaveButtonText() {
+            const saveBtn = document.getElementById('saveBtn');
+            if (saveBtn) {
+                saveBtn.textContent = editingId ? t('updateProfile') : t('saveProfile');
+            }
+        }
+
+        // Handle color selection change
+        function handleColorChange() {
+            const colorSelect = document.getElementById('filamentColor');
+            const customColorGroup = document.getElementById('customColorGroup');
+            const customColorNameGroup = document.getElementById('customColorNameGroup');
+            if (colorSelect.value === 'custom') {
+                customColorGroup.style.display = 'block';
+                customColorNameGroup.style.display = 'block';
+            } else {
+                customColorGroup.style.display = 'none';
+                customColorNameGroup.style.display = 'none';
+            }
+        }
+        
+        // Make function globally accessible
+        window.handleColorChange = handleColorChange;
+
+        // Save filament profile
+        function saveFilament() {
+            const customName = document.getElementById('filamentCustomName').value.trim();
+            const type = document.getElementById('filamentType').value;
+            const manufacturer = document.getElementById('filamentManufacturer').value;
+            let color = document.getElementById('filamentColor').value;
+            let colorName;
+            
+            // Handle custom color
+            let customColorName = '';
+            if (color === 'custom') {
+                color = document.getElementById('filamentCustomColor').value;
+                customColorName = document.getElementById('filamentCustomColorName').value.trim();
+                colorName = customColorName || 'custom';
+            } else {
+                colorName = getColorName(color);
+            }
+            
+            const diameter = parseFloat(document.getElementById('filamentDiameter').value);
+            const pricePerKg = parseFloat(document.getElementById('pricePerKg').value);
+            const density = parseFloat(document.getElementById('density').value);
+            const sellingPricePerGram = parseFloat(document.getElementById('sellingPricePerGram').value) || 0;
+            const sellingPricePerMinute = parseFloat(document.getElementById('sellingPricePerMinute').value) || 0;
+
+            if (!pricePerKg || pricePerKg <= 0) {
+                showError(t('enterPricePerKg'));
+                return;
+            }
+
+            let savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+            
+            if (editingId) {
+                // Update existing filament
+                const index = savedFilaments.findIndex(f => f.id === editingId);
+                if (index !== -1) {
+                    savedFilaments[index] = {
+                        id: editingId,
+                        customName: customName,
+                        type: type,
+                        manufacturer: manufacturer,
+                        color: color,
+                        colorName: colorName,
+                        diameter: diameter,
+                        pricePerKg: pricePerKg,
+                        pricePerGram: pricePerKg / 1000,
+                        density: density,
+                        sellingPricePerGram: sellingPricePerGram,
+                        sellingPricePerMinute: sellingPricePerMinute
+                    };
+                    localStorage.setItem('filaments', JSON.stringify(savedFilaments));
+                    showError(t('profileUpdated'), true);
+                }
+                cancelEdit();
+                
+                // Hide setup section after updating
+                setTimeout(() => {
+                    toggleFilamentSetup();
+                }, 1000);
+            } else {
+                // Create new filament
+                const filament = {
+                    id: Date.now(),
+                    customName: customName,
+                    type: type,
+                    manufacturer: manufacturer,
+                    color: color,
+                    colorName: colorName,
+                    diameter: diameter,
+                    pricePerKg: pricePerKg,
+                    pricePerGram: pricePerKg / 1000,
+                    density: density,
+                    sellingPricePerGram: sellingPricePerGram,
+                    sellingPricePerMinute: sellingPricePerMinute
+                };
+                savedFilaments.push(filament);
+                localStorage.setItem('filaments', JSON.stringify(savedFilaments));
+                showError(t('profileSaved'), true);
+            }
+
+            loadSavedFilaments();
+            updateFilamentSelect();
+            
+            // Hide setup section after saving
+            if (!editingId) {
+                setTimeout(() => {
+                    toggleFilamentSetup();
+                }, 1000);
+            }
+        }
+
+        // Edit filament
+        function editFilament(id) {
+            const savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+            const filament = savedFilaments.find(f => f.id === id);
+            
+            if (filament) {
+                editingId = id;
+                document.getElementById('filamentCustomName').value = filament.customName || '';
+                document.getElementById('filamentType').value = filament.type;
+                document.getElementById('filamentManufacturer').value = filament.manufacturer || '';
+                
+                // Handle custom color
+                if (filament.colorName === 'custom' || !getColorName(filament.color)) {
+                    document.getElementById('filamentColor').value = 'custom';
+                    document.getElementById('filamentCustomColor').value = filament.color;
+                    document.getElementById('customColorGroup').style.display = 'block';
+                } else {
+                    document.getElementById('filamentColor').value = filament.color;
+                    document.getElementById('customColorGroup').style.display = 'none';
+                }
+                
+                document.getElementById('filamentDiameter').value = filament.diameter;
+                document.getElementById('pricePerKg').value = filament.pricePerKg;
+                document.getElementById('density').value = filament.density;
+                document.getElementById('sellingPricePerGram').value = filament.sellingPricePerGram || '';
+                document.getElementById('sellingPricePerMinute').value = filament.sellingPricePerMinute || '';
+                document.getElementById('selectedFilament').value = '';
+                
+                // Show edit mode controls
+                document.getElementById('editModeControls').style.display = 'block';
+                updateSaveButtonText();
+                
+                // Show filament setup section
+                const section = document.getElementById('filamentSetupSection');
+                if (!section.classList.contains('show')) {
+                    section.classList.add('show');
+                }
+                
+                // Scroll to form
+                setTimeout(() => {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+
+        // Cancel edit
+        function cancelEdit() {
+            editingId = null;
+            document.getElementById('editModeControls').style.display = 'none';
+            updateSaveButtonText();
+            
+            // Clear form
+            document.getElementById('filamentCustomName').value = '';
+            document.getElementById('filamentType').value = 'PLA';
+            document.getElementById('filamentManufacturer').value = '';
+            document.getElementById('filamentColor').value = '#FF0000';
+            document.getElementById('customColorGroup').style.display = 'none';
+            document.getElementById('customColorNameGroup').style.display = 'none';
+            document.getElementById('filamentCustomColorName').value = '';
+            document.getElementById('filamentDiameter').value = '1.75';
+            document.getElementById('pricePerKg').value = '';
+            document.getElementById('density').value = '1.24';
+            document.getElementById('sellingPricePerGram').value = '';
+            document.getElementById('sellingPricePerMinute').value = '';
+            document.getElementById('selectedFilament').value = '';
+            
+            // Hide filament setup section
+            document.getElementById('filamentSetupSection').classList.remove('show');
+        }
+
+        // Load and display saved filaments
+        function loadSavedFilaments() {
+            const savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+            const container = document.getElementById('savedFilaments');
+            
+            if (savedFilaments.length === 0) {
+                container.innerHTML = `<p style="color: #666; grid-column: 1/-1;">${t('noSavedFilaments')}</p>`;
+                return;
+            }
+
+            container.innerHTML = savedFilaments.map(filament => {
+                const colorName = filament.colorName || getColorName(filament.color);
+                let translatedColorName;
+                if (colorName === 'custom') {
+                    translatedColorName = 'Custom';
+                } else if (translations[currentLanguage][colorName]) {
+                    translatedColorName = translations[currentLanguage][colorName];
+                } else {
+                    // It's a custom color name
+                    translatedColorName = colorName;
+                }
+                const manufacturerText = filament.manufacturer ? ` - ${filament.manufacturer}` : '';
+                const displayName = filament.customName || `${filament.type}${manufacturerText} - ${translatedColorName}`;
+                return `
+                <div class="filament-card">
+                    <button class="delete-btn" onclick="deleteFilament(${filament.id})" title="${t('delete')}">×</button>
+                    <button class="edit-btn" onclick="editFilament(${filament.id})" title="${t('edit')}">✎</button>
+                    <h3>${displayName}</h3>
+                    ${filament.customName ? `<p style="color: #999; font-size: 0.9em; margin-top: -5px;">${filament.type}${manufacturerText} - ${translatedColorName}</p>` : ''}
+                    ${filament.manufacturer ? `<p><strong>${t('manufacturerLabel')}:</strong> ${filament.manufacturer}</p>` : ''}
+                    <p><strong>${t('colorLabel')}:</strong> <span class="color-preview" style="background-color: ${filament.color}"></span> ${translatedColorName}</p>
+                    <p><strong>${t('diameterLabel')}:</strong> ${filament.diameter}mm</p>
+                    <p><strong>${t('priceLabel')}:</strong> ${formatCurrency(filament.pricePerKg, 2)}/kg (${formatCurrency(filament.pricePerGram, 4)}/g)</p>
+                    <p><strong>${t('densityLabel')}:</strong> ${filament.density} g/cm³</p>
+                    ${filament.sellingPricePerGram > 0 ? `<p><strong>${t('sellPerGram')}:</strong> ${formatCurrency(filament.sellingPricePerGram, 3)}</p>` : ''}
+                    ${filament.sellingPricePerMinute > 0 ? `<p><strong>${t('sellPerMin')}:</strong> ${formatCurrency(filament.sellingPricePerMinute, 3)}</p>` : ''}
+                    <button class="btn btn-primary use-btn" onclick="useFilament(${filament.id})">${t('useThisFilament')}</button>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // Update filament select dropdown
+        function updateFilamentSelect() {
+            const savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+            const select = document.getElementById('selectedFilament');
+            
+            const firstOption = select.querySelector('option[value=""]');
+            if (firstOption) {
+                firstOption.textContent = t('selectSavedFilament');
+            }
+            
+            // Remove old options except the first one
+            while (select.children.length > 1) {
+                select.removeChild(select.lastChild);
+            }
+            
+            savedFilaments.forEach(filament => {
+                const option = document.createElement('option');
+                option.value = filament.id;
+                const manufacturerText = filament.manufacturer ? ` - ${filament.manufacturer}` : '';
+                const colorName = filament.colorName || getColorName(filament.color);
+                let translatedColorName;
+                if (colorName === 'custom') {
+                    translatedColorName = 'Custom';
+                } else if (translations[currentLanguage][colorName]) {
+                    translatedColorName = translations[currentLanguage][colorName];
+                } else {
+                    // It's a custom color name
+                    translatedColorName = colorName;
+                }
+                const displayName = filament.customName || `${filament.type}${manufacturerText} - ${translatedColorName}`;
+                option.textContent = `${displayName} - ${formatCurrency(filament.pricePerKg, 2)}/kg`;
+                select.appendChild(option);
+            });
+        }
+
+        // Use a saved filament
+        function useFilament(id) {
+            // Cancel edit mode if active
+            if (editingId) {
+                cancelEdit();
+            }
+            
+            const savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+            const filament = savedFilaments.find(f => f.id === id);
+            
+            if (filament) {
+                document.getElementById('filamentCustomName').value = filament.customName || '';
+                document.getElementById('filamentType').value = filament.type;
+                document.getElementById('filamentManufacturer').value = filament.manufacturer || '';
+                
+                // Handle custom color
+                if (filament.colorName === 'custom' || !getColorName(filament.color) || (filament.colorName && !translations[currentLanguage][filament.colorName])) {
+                    document.getElementById('filamentColor').value = 'custom';
+                    document.getElementById('filamentCustomColor').value = filament.color;
+                    document.getElementById('filamentCustomColorName').value = (filament.colorName && filament.colorName !== 'custom') ? filament.colorName : '';
+                    document.getElementById('customColorGroup').style.display = 'block';
+                    document.getElementById('customColorNameGroup').style.display = 'block';
+                } else {
+                    document.getElementById('filamentColor').value = filament.color;
+                    document.getElementById('customColorGroup').style.display = 'none';
+                    document.getElementById('customColorNameGroup').style.display = 'none';
+                }
+                
+                document.getElementById('filamentDiameter').value = filament.diameter;
+                document.getElementById('pricePerKg').value = filament.pricePerKg;
+                document.getElementById('density').value = filament.density;
+                document.getElementById('sellingPricePerGram').value = filament.sellingPricePerGram || '';
+                document.getElementById('sellingPricePerMinute').value = filament.sellingPricePerMinute || '';
+                document.getElementById('selectedFilament').value = id;
+            }
+        }
+
+        // Delete filament
+        function deleteFilament(id) {
+            if (window.confirm && confirm(t('deleteConfirm'))) {
+                let savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+                savedFilaments = savedFilaments.filter(f => f.id !== id);
+                localStorage.setItem('filaments', JSON.stringify(savedFilaments));
+                
+                // If we were editing this filament, cancel edit mode
+                if (editingId === id) {
+                    cancelEdit();
+                }
+                
+                loadSavedFilaments();
+                updateFilamentSelect();
+            }
+        }
+
+        // Calculate cost
+        function calculateCost() {
+            // Close any existing error messages
+            closeErrorMessage();
+            
+            const partWeight = parseFloat(document.getElementById('partWeight').value) || 0;
+            const printHours = parseInt(document.getElementById('printHours').value) || 0;
+            const printMinutes = parseInt(document.getElementById('printMinutes').value) || 0;
+            const printTime = (printHours * 60) + printMinutes;
+            const selectedFilamentId = document.getElementById('selectedFilament').value;
+
+            let pricePerGram, density, diameter, sellingPricePerGram, sellingPricePerMinute, filamentType, color, manufacturer, customName, colorName;
+
+            if (selectedFilamentId) {
+                // Use saved filament
+                const savedFilaments = JSON.parse(localStorage.getItem('filaments') || '[]');
+                const filament = savedFilaments.find(f => f.id == selectedFilamentId);
+                if (filament) {
+                    pricePerGram = filament.pricePerGram;
+                    density = filament.density;
+                    diameter = filament.diameter;
+                    sellingPricePerGram = filament.sellingPricePerGram || 0;
+                    sellingPricePerMinute = filament.sellingPricePerMinute || 0;
+                    filamentType = filament.type;
+                    color = filament.color;
+                    manufacturer = filament.manufacturer || '';
+                    customName = filament.customName || '';
+                    colorName = filament.colorName || getColorName(filament.color);
+                } else {
+                    showError(t('filamentNotFound'));
+                    return;
+                }
+            } else {
+                // Use current form values
+                const pricePerKg = parseFloat(document.getElementById('pricePerKg').value);
+                if (!pricePerKg || pricePerKg <= 0) {
+                    showError(t('enterPriceOrSelect'));
+                    return;
+                }
+                pricePerGram = pricePerKg / 1000;
+                density = parseFloat(document.getElementById('density').value) || 1.24;
+                diameter = parseFloat(document.getElementById('filamentDiameter').value) || 1.75;
+                sellingPricePerGram = parseFloat(document.getElementById('sellingPricePerGram').value) || 0;
+                sellingPricePerMinute = parseFloat(document.getElementById('sellingPricePerMinute').value) || 0;
+                filamentType = document.getElementById('filamentType').value;
+                const colorSelect = document.getElementById('filamentColor').value;
+                if (colorSelect === 'custom') {
+                    color = document.getElementById('filamentCustomColor').value;
+                    const customColorNameInput = document.getElementById('filamentCustomColorName').value.trim();
+                    colorName = customColorNameInput || 'custom';
+                } else {
+                    color = colorSelect;
+                    colorName = getColorName(color);
+                }
+                manufacturer = document.getElementById('filamentManufacturer').value || '';
+                customName = document.getElementById('filamentCustomName').value.trim() || '';
+            }
+
+            if (!partWeight || partWeight <= 0) {
+                showError(t('enterWeight'));
+                return;
+            }
+
+            // Validate print time
+            if (printTime <= 0) {
+                showError(t('enterPrintTime'));
+                return;
+            }
+
+            // Calculate filament length in meters from weight
+            const volumeCm3 = partWeight / density; // cm³
+            const volumeMm3 = volumeCm3 * 1000; // mm³
+            const crossSectionArea = Math.PI * Math.pow(diameter / 2, 2); // mm²
+            const lengthMm = volumeMm3 / crossSectionArea; // mm
+            const lengthMeters = lengthMm / 1000; // meters
+
+            // Cost calculations
+            const materialCost = partWeight * pricePerGram;
+            const costPerGram = pricePerGram;
+            const costPerMeter = materialCost / lengthMeters;
+
+            // Selling price calculations
+            let sellingPriceByWeight = 0;
+            let sellingPriceByTime = 0;
+            let totalSellingPrice = 0;
+
+            if (sellingPricePerGram > 0) {
+                sellingPriceByWeight = partWeight * sellingPricePerGram;
+            }
+            if (sellingPricePerMinute > 0 && printTime > 0) {
+                sellingPriceByTime = printTime * sellingPricePerMinute;
+            }
+
+            // Total selling price (use both if both are set, or whichever is set)
+            if (sellingPricePerGram > 0 && sellingPricePerMinute > 0) {
+                totalSellingPrice = sellingPriceByWeight + sellingPriceByTime;
+            } else if (sellingPricePerGram > 0) {
+                totalSellingPrice = sellingPriceByWeight;
+            } else if (sellingPricePerMinute > 0) {
+                totalSellingPrice = sellingPriceByTime;
+            }
+
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+            
+            let translatedColorName;
+            if (colorName === 'custom') {
+                translatedColorName = 'Custom';
+            } else if (translations[currentLanguage][colorName]) {
+                translatedColorName = translations[currentLanguage][colorName];
+            } else {
+                // It's a custom color name
+                translatedColorName = colorName;
+            }
+            const displayName = customName || `${filamentType}${manufacturer ? ` - ${manufacturer}` : ''} - ${translatedColorName}`;
+            const printTimeDisplay = printTime > 0 ? (printHours > 0 ? `${printHours} ${t('hours')} ` : '') + (printMinutes > 0 ? `${printMinutes} ${t('minutes')}` : printHours > 0 ? '' : `${printTime} ${t('minutes')}`) : '';
+            
+            resultsContent.innerHTML = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th colspan="2">${t('inputSettings')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label-cell">${t('filamentTypeLabel')}</td>
+                            <td class="value-cell">${displayName} <span class="color-preview" style="background-color: ${color}"></span></td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">${t('partWeightLabel')}</td>
+                            <td class="value-cell">${formatNumber(partWeight, 2)} ${t('grams')}</td>
+                        </tr>
+                        ${printTime > 0 ? `<tr>
+                            <td class="label-cell">${t('printTimeLabel')}</td>
+                            <td class="value-cell">${printTimeDisplay}</td>
+                        </tr>` : ''}
+                    </tbody>
+                </table>
+                
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th colspan="2">${t('costs')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="label-cell">${t('materialCost')}</td>
+                            <td class="value-cell">${formatCurrency(materialCost, 4)}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                ${(sellingPriceByWeight > 0 || sellingPriceByTime > 0 || totalSellingPrice > 0) ? `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th colspan="2">${t('sellingPrices')}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${sellingPriceByWeight > 0 ? `<tr>
+                            <td class="label-cell">${t('sellingPriceByWeight')}</td>
+                            <td class="value-cell">
+                                <div style="font-weight: bold; margin-bottom: 5px;">${formatCurrency(sellingPriceByWeight, 2)}</div>
+                                <div style="font-size: 0.85em; opacity: 0.9;">${formatNumber(partWeight, 2)}g × ${formatCurrency(sellingPricePerGram, 3)}/g</div>
+                            </td>
+                        </tr>` : ''}
+                        ${sellingPriceByTime > 0 ? `<tr>
+                            <td class="label-cell">${t('sellingPriceByTime')}</td>
+                            <td class="value-cell">
+                                <div style="font-weight: bold; margin-bottom: 5px;">${formatCurrency(sellingPriceByTime, 2)}</div>
+                                <div style="font-size: 0.85em; opacity: 0.9;">${printTime} ${t('minutes')} × ${formatCurrency(sellingPricePerMinute, 3)}/${t('minute')}</div>
+                            </td>
+                        </tr>` : ''}
+                        ${totalSellingPrice > 0 ? `<tr style="background: rgba(255, 255, 255, 0.2); font-size: 1.2em; font-weight: bold;">
+                            <td class="label-cell">${t('totalSellingPrice')}</td>
+                            <td class="value-cell">
+                                <div style="font-weight: bold; margin-bottom: 5px;">${formatCurrency(totalSellingPrice, 2)}</div>
+                                ${(sellingPriceByWeight > 0 && sellingPriceByTime > 0) ? `<div style="font-size: 0.7em; opacity: 0.9; font-weight: normal;">${formatCurrency(sellingPriceByWeight, 2)} + ${formatCurrency(sellingPriceByTime, 2)}</div>` : ''}
+                            </td>
+                        </tr>` : ''}
+                    </tbody>
+                </table>
+                ` : ''}
+            `;
+
+            resultsDiv.classList.remove('hidden');
+        }
+
+        // Clear form
+        function clearForm() {
+            document.getElementById('partWeight').value = '';
+            document.getElementById('printHours').value = '0';
+            document.getElementById('printMinutes').value = '0';
+            document.getElementById('selectedFilament').value = '';
+            document.getElementById('results').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
